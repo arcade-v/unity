@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en-us">
+ 
+<head>
+    <base href="https://cdn.jsdelivr.net/gh/arcade-v/unity/adventure_capitalist/">
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Unity WebGL Player | AdVenture Capitalist!</title>
+    <link rel="stylesheet" href="TemplateData/style.css">
+    <script src="TemplateData/UnityProgress.js"></script>
+    <script src="/js/all.js"></script>
+
+</head>
+ 
+<body class="template">
+    <div class="webgl-content">
+        <div id="unityContainer" style="width: 960px; height: 600px; padding: 0px; margin: 0px; border: 0px; position: relative; background: rgb(35, 31, 32);">
+          
+      <canvas  class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" id="canvas"width=335 height=667 style="width: 100%; height: 100%; background: #231F20"></canvas>
+      
+    <div id="loadingBox">
+        <div id="bgBar"></div>
+        <div id="progressBar"></div>
+        <p id="loadingInfo">Loading...</p>
+    </div>
+    <script type='text/javascript'>
+        // connect to canvas
+        var Module = {
+            TOTAL_MEMORY: 201326592,
+            filePackagePrefixURL: "Release/",
+            memoryInitializerPrefixURL: "Release/",
+            preRun: [],
+            postRun: [],
+            print: (function() {
+                return function(text) {
+                    console.log(text);
+                };
+            })(),
+            printErr: function(text) {
+                console.error(text);
+            },
+            canvas: document.getElementById('canvas'),
+            progress: null,
+            setStatus: function(text) {
+                if (this.progress == null) {
+                    if (typeof UnityProgress != 'function')
+                        return;
+                    this.progress = new UnityProgress(canvas);
+                }
+                if (!Module.setStatus.last) Module.setStatus.last = {
+                    time: Date.now(),
+                    text: ''
+                };
+                if (text === Module.setStatus.text) return;
+                this.progress.SetMessage(text);
+                var m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
+                if (m)
+                    this.progress.SetProgress(parseInt(m[2]) / parseInt(m[4]));
+                if (text === "")
+                    this.progress.Clear()
+            },
+            totalDependencies: 0,
+            monitorRunDependencies: function(left) {
+                this.totalDependencies = Math.max(this.totalDependencies, left);
+                Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies - left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
+            }
+        };
+        Module.setStatus('Downloading (0.0/1)');
+    </script>
+    <script src="Release/UnityConfig.js"></script>
+<script>
+(async function () {
+    const baseURL =
+        "https://cdn.jsdelivr.net/gh/arcade-v/unity/adventure_capitalist/Release/";
+
+    const partCount = 5;
+    const expectedSize = 94384055;
+
+    function setLoadingStatus(message) {
+        if (typeof Module.setStatus === "function") {
+            Module.setStatus(message);
+        }
+
+        const info = document.getElementById("loadingInfo");
+        if (info) info.textContent = message;
+    }
+
+    try {
+        const buffers = [];
+        let totalBytes = 0;
+
+        for (let i = 1; i <= partCount; i++) {
+            const url = new URL(`webgl.data.part${i}`, baseURL);
+
+            setLoadingStatus(`Downloading data part ${i}/${partCount}...`);
+
+            const response = await fetch(url.href);
+
+            if (!response.ok) {
+                throw new Error(
+                    `Failed to load ${url.href}: HTTP ${response.status}`
+                );
+            }
+
+            const buffer = await response.arrayBuffer();
+
+            if (buffer.byteLength === 0) {
+                throw new Error(`Part ${i} is empty.`);
+            }
+
+            buffers.push(buffer);
+            totalBytes += buffer.byteLength;
+        }
+
+        if (totalBytes !== expectedSize) {
+            throw new Error(
+                `Invalid data size: expected ${expectedSize} bytes, ` +
+                `received ${totalBytes} bytes.`
+            );
+        }
+
+        const mergedData = new Uint8Array(totalBytes);
+        let offset = 0;
+
+        for (const buffer of buffers) {
+            mergedData.set(new Uint8Array(buffer), offset);
+            offset += buffer.byteLength;
+        }
+
+        const mergedBlob = new Blob([mergedData], {
+            type: "application/octet-stream"
+        });
+
+        const mergedURL = URL.createObjectURL(mergedBlob);
+
+        // Keep the merged file alive while Unity loads it.
+        window.unityMergedDataURL = mergedURL;
+
+        // fileloader.js requests webgl.data through XMLHttpRequest.
+        const originalOpen = XMLHttpRequest.prototype.open;
+        const originalSend = XMLHttpRequest.prototype.send;
+
+        XMLHttpRequest.prototype.open = function (
+            method, url, ...args
+        ) {
+            const requestedURL = String(url);
+
+            if (
+                requestedURL === "webgl.data" ||
+                requestedURL.endsWith("/webgl.data")
+            ) {
+                this.__useMergedUnityData = true;
+            }
+
+            return originalOpen.call(this, method, url, ...args);
+        };
+
+        XMLHttpRequest.prototype.send = function (...args) {
+            if (!this.__useMergedUnityData) {
+                return originalSend.apply(this, args);
+            }
+
+            // Load the reconstructed package as an ArrayBuffer.
+            fetch(mergedURL)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(
+                            `Merged data request failed: HTTP ${response.status}`
+                        );
+                    }
+
+                    return response.arrayBuffer();
+                })
+                .then(buffer => {
+                    Object.defineProperty(this, "response", {
+                        configurable: true,
+                        value: buffer
+                    });
+
+                    Object.defineProperty(this, "status", {
+                        configurable: true,
+                        value: 200
+                    });
+
+                    Object.defineProperty(this, "readyState", {
+                        configurable: true,
+                        value: 4
+                    });
+
+                    if (typeof this.onload === "function") {
+                        this.onload(new ProgressEvent("load"));
+                    }
+
+                    if (typeof this.onreadystatechange === "function") {
+                        this.onreadystatechange();
+                    }
+                })
+                .catch(error => {
+                    console.error("Unity data load failed:", error);
+
+                    if (typeof this.onerror === "function") {
+                        this.onerror(new ProgressEvent("error"));
+                    }
+                });
+        };
+
+        setLoadingStatus("Data reconstructed. Starting Unity...");
+
+        // Load the original Unity data loader after reconstruction.
+        const script = document.createElement("script");
+        script.src = baseURL + "fileloader.js";
+
+        script.onerror = function () {
+            setLoadingStatus("Failed to load Unity fileloader.js.");
+        };
+
+        document.body.appendChild(script);
+    } catch (error) {
+        console.error("Unity data reconstruction failed:", error);
+        setLoadingStatus("Failed to load game data: " + error.message);
+    }
+})();
+</script>
+          <script>
+if (!console.logError) {
+    console.logError = function () {
+        console.error.apply(console, arguments);
+    };
+}
+</script>
+    <script>
+      function mergeFiles(fileParts) {
+        return new Promise((resolve, reject) => {
+          let buffers = [];
+
+          function fetchPart(index) {
+            if (index >= fileParts.length) {
+              let mergedBlob = new Blob(buffers);
+              let mergedFileUrl = URL.createObjectURL(mergedBlob);
+              resolve(mergedFileUrl);
+              return;
+            }
+            fetch(fileParts[index])
+              .then((response) => response.arrayBuffer())
+              .then((data) => {
+                buffers.push(data);
+                fetchPart(index + 1);
+              })
+              .catch(reject);
+          }
+          fetchPart(0);
+        });
+      }
+      function getParts(file, start, end) {
+        let parts = [];
+        for (let i = start; i <= end; i++) {
+          parts.push(file + ".part" + i);
+        }
+        return parts;
+      }
+        if (!(!Math.fround)) {
+            var script = document.createElement('script');
+            script.src = "https://raw.githubusercontent.com/arcade-v/unity/refs/heads/main/adventure_capitalist/Release/webgl.js";
+            document.body.appendChild(script);
+        } else {
+            var codeXHR = new XMLHttpRequest();
+            codeXHR.open('GET', 'https://raw.githubusercontent.com/arcade-v/unity/refs/heads/main/adventure_capitalist/Release/webgl.js', true);
+            codeXHR.onload = function() {
+                var code = codeXHR.responseText;
+                if (!Math.fround) {
+                    try {
+                        console.log('optimizing out Math.fround calls');
+                        var m = /var ([^=]+)=global\.Math\.fround;/.exec(code);
+                        var minified = m[1];
+                        if (!minified) throw 'fail';
+                        var startAsm = code.indexOf('// EMSCRIPTEN_START_FUNCS');
+                        var endAsm = code.indexOf('// EMSCRIPTEN_END_FUNCS');
+                        var asm = code.substring(startAsm, endAsm);
+                        do {
+                            var moar = false; // we need to re-do, as x(x( will not be fixed
+                            asm = asm.replace(new RegExp('[^a-zA-Z0-9\\$\\_]' + minified + '\\(', 'g'), function(s) {
+                                moar = true;
+                                return s[0] + '('
+                            });
+                        } while (moar);
+                        code = code.substring(0, startAsm) + asm + code.substring(endAsm);
+                        code = code.replace("'use asm'", "'almost asm'");
+                    } catch (e) {
+                        console.log('failed to optimize out Math.fround calls ' + e)
+                    }
+                }
+                var blob = new Blob([code], {
+                    type: 'text/javascript'
+                });
+                codeXHR = null;
+                var src = URL.createObjectURL(blob);
+                var script = document.createElement('script');
+                script.src = URL.createObjectURL(blob);
+                script.onload = function() {
+                    URL.revokeObjectURL(script.src);
+                };
+                document.body.appendChild(script);
+            };
+            codeXHR.send(null);
+        }
+    </script>
+</body>
+ 
+</html> 
