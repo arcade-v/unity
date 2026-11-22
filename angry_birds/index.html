@@ -1,24 +1,256 @@
-</style><style type="text/css">#button {
-  display:none;
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Angry Birds</title>
+
+  <style>
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: transparent;
 }
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#button {
+  display: none;
+}
+
 .imgb_vis {
   animation: imgb-animation 7s linear;
 }
+
 @keyframes imgb-animation {
-  10% {
-    transform: translateX(0);
-  }
-  20% {
-    transform: translateX(100px);
-  }
-  90% {
-    transform: translateX(100px);
-  }
-  100% {
-    transform: translateX(0);
-  }
-}</style></head><body dir="ltr"><script src="https://cdn.jsdelivr.net/gh/arcade-v/unity/angry_birds/UnityProgress.js"></script><script src="https://cdn.jsdelivr.net/gh/arcade-v/unity/angry_birds/birds.js"></script><script>
-      var gameInstance = UnityLoader.instantiate("gameContainer", "https://cdn.jsdelivr.net/gh/arcade-v/unity/angry_birds/birds.json", {onProgress: UnityProgress,Module:{onRuntimeInitialized: function() {UnityProgress(gameInstance, "complete")}}});
-    </script><script src=""></script><div class="webgl-content">
-        <div id="gameContainer" style="width: 100vw; height: 100vh; padding: 0px; margin: 0px; border: 0px; position: relative; background: rgb(35, 31, 32);"><canvas id="#canvas" style="cursor: default;" width="960" height="600"></canvas><div class="logo Dark" style="display: none;"></div><div class="progress Dark" style="display: none;"><div class="empty" style="width: 0%;"></div><div class="full" style="width: 100%;"></div></div></div>
-        </div>
+  10% { transform: translateX(0); }
+  20% { transform: translateX(100px); }
+  90% { transform: translateX(100px); }
+  100% { transform: translateX(0); }
+}
+
+.webgl-content,
+#gameContainer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  max-width: 100vw;
+  max-height: 100vh;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  background: transparent;
+}
+
+#gameContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#gameContainer canvas {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+  </style>
+</head>
+
+<body dir="ltr">
+
+  <div class="webgl-content">
+    <div id="gameContainer">
+      <canvas id="canvas" tabindex="-1"></canvas>
+    </div>
+  </div>
+
+  <script>
+    const CDN_BASES = [
+      "https://cdn.jsdelivr.net/gh/arcade-v/unity@main/angry_birds/",
+      "https://fastly.jsdelivr.net/gh/arcade-v/unity@main/angry_birds/",
+      "https://testingcf.jsdelivr.net/gh/arcade-v/unity@main/angry_birds/",
+      "https://gcore.jsdelivr.net/gh/arcade-v/unity@main/angry_birds/",
+      "https://raw.githack.com/arcade-v/unity/main/angry_birds/",
+      "https://raw.githubusercontent.com/arcade-v/unity/main/angry_birds/",
+      "https://cdn.statically.io/gh/arcade-v/unity@main/angry_birds/"
+    ];
+
+    const MAX_RETRIES = 2;
+    const RETRY_DELAY = 1000;
+
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function getUrls(file) {
+      return CDN_BASES.map(base => base + file);
+    }
+
+    async function loadScript(file) {
+      const errors = [];
+
+      for (const url of getUrls(file)) {
+        for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+          try {
+            console.log("[CDN] Loading:", url);
+
+            await new Promise((resolve, reject) => {
+              const script = document.createElement("script");
+
+              script.src = url;
+              script.onload = resolve;
+              script.onerror = () => {
+                script.remove();
+                reject(new Error("Script failed: " + url));
+              };
+
+              document.head.appendChild(script);
+            });
+
+            console.log("[CDN] Loaded:", url);
+            return url;
+
+          } catch (error) {
+            console.warn("[CDN] Failed:", url, error);
+            errors.push(error.message);
+
+            if (attempt < MAX_RETRIES) {
+              await sleep(RETRY_DELAY * (attempt + 1));
+            }
+          }
+        }
+      }
+
+      throw new Error(
+        "All CDNs failed for " + file + "\n" +
+        errors.join("\n")
+      );
+    }
+
+    async function fetchJsonUrl(file) {
+      const errors = [];
+
+      for (const url of getUrls(file)) {
+        for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+          try {
+            console.log("[CDN] Checking configuration:", url);
+
+            const response = await fetch(url, {
+              cache: "no-store"
+            });
+
+            if (!response.ok) {
+              throw new Error("HTTP " + response.status);
+            }
+
+            // Validate that the JSON is readable.
+            await response.json();
+
+            console.log("[CDN] Configuration available:", url);
+
+            // Return the original URL, not a Blob URL.
+            return url;
+
+          } catch (error) {
+            console.warn("[CDN] Configuration failed:", url, error);
+            errors.push(url + ": " + error.message);
+
+            if (attempt < MAX_RETRIES) {
+              await sleep(RETRY_DELAY * (attempt + 1));
+            }
+          }
+        }
+      }
+
+      throw new Error(
+        "All CDNs failed to load " + file + "\n" +
+        errors.join("\n")
+      );
+    }
+
+    function updateProgress(instance, progress) {
+      if (typeof UnityProgress === "function") {
+        UnityProgress(instance, progress);
+      }
+    }
+
+    async function startGame() {
+      try {
+        // Load progress handler.
+        await loadScript("UnityProgress.js");
+
+        // Load Unity engine.
+        await loadScript("birds.js");
+
+        if (typeof UnityLoader === "undefined") {
+          throw new Error("UnityLoader was not initialized.");
+        }
+
+        // Find a working configuration URL.
+        const configUrl = await fetchJsonUrl("birds.json");
+
+        console.log("[Unity] Starting Angry Birds...");
+        console.log("[Unity] Configuration:", configUrl);
+
+        // Keep the real CDN URL so Unity can resolve relative assets.
+        window.gameInstance = UnityLoader.instantiate(
+          "gameContainer",
+          configUrl,
+          {
+            onProgress: function(instance, progress) {
+              updateProgress(instance, progress);
+            },
+
+            Module: {
+              onRuntimeInitialized: function() {
+                console.log("[Unity] Runtime initialized.");
+                updateProgress(window.gameInstance, 1);
+              }
+            }
+          }
+        );
+
+      } catch (error) {
+        console.error("[Unity] Failed:", error);
+
+        const errorElement = document.createElement("pre");
+
+        errorElement.style.cssText = `
+          position:fixed;
+          z-index:99999;
+          bottom:0;
+          left:0;
+          width:100%;
+          max-height:35%;
+          overflow:auto;
+          box-sizing:border-box;
+          padding:12px;
+          margin:0;
+          background:#300;
+          color:white;
+          font:12px monospace;
+          white-space:pre-wrap;
+        `;
+
+        errorElement.textContent =
+          "GAME LOADING FAILED\n\n" +
+          (error.stack || error.message);
+
+        document.body.appendChild(errorElement);
+      }
+    }
+
+    startGame();
+  </script>
+
+</body>
+</html>

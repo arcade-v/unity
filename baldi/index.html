@@ -1,143 +1,388 @@
 <!DOCTYPE html>
 <html lang="en-us">
-
 <head>
-    <base href="https://cdn.jsdelivr.net/gh/arcade-v/unity/baldi/">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&display=swap"
+    rel="stylesheet"
+  >
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Unity WebGL Player | Baldi's Basics Plus</title>
+    <title>Baldi's Basics Plus</title>
+
     <style>
-        html,
-        body {
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
             margin: 0;
             padding: 0;
-            border: 0;
-            height: 100%;
             width: 100%;
+            height: 100%;
             overflow: hidden;
-            background: #231F20;
+            background: transparent;
+        }
+
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #game-container {
+            position: relative;
+            width: min(100vw, 177.7778vh);
+            height: min(100vh, 56.25vw);
+            aspect-ratio: 16 / 9;
+            overflow: hidden;
+            background: transparent;
         }
 
         #unity-canvas {
             width: 100%;
             height: 100%;
             display: block;
+            background: transparent;
         }
 
         #loading-text {
+            position: absolute;
+            z-index: 10;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             color: white;
-            font-size: 48px;
+            font-family: 'Pixelify Sans', monospace !important;
             font-family: cursive;
             text-align: center;
-            margin-top: 20px;
+            width: 95%;
+            overflow-wrap: anywhere;
+            pointer-events: none;
+        }
+
+        #error {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            padding: 12px;
+            background: #8b0000;
+            color: white;
+            font: 13px monospace;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
         }
     </style>
 </head>
 
 <body>
+
+<div id="game-container">
     <div id="loading-text">LOADING...</div>
     <canvas id="unity-canvas" tabindex="-1"></canvas>
-    <script src="Build/Export.loader.js"></script>
-    <script>
-        // Mobile viewport handling
-        if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-            const meta = document.createElement('meta');
-            meta.name = 'viewport';
-            meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-            document.head.appendChild(meta);
+</div>
+
+<div id="error"></div>
+
+<script>
+const CDN_BASES = [
+      "https://cdn.jsdelivr.net/gh/arcade-v/unity@main/baldi/",
+      "https://fastly.jsdelivr.net/gh/arcade-v/unity@main/baldi/",
+      "https://testingcf.jsdelivr.net/gh/arcade-v/unity@main/baldi/",
+      "https://gcore.jsdelivr.net/gh/arcade-v/unity@main/baldi/",
+      "https://raw.githack.com/arcade-v/unity/main/baldi/",
+      "https://raw.githubusercontent.com/arcade-v/unity/main/baldi/",
+      "https://cdn.statically.io/gh/arcade-v/unity@main/baldi/"
+];
+
+const loadingText = document.getElementById("loading-text");
+const errorBox = document.getElementById("error");
+
+let totalBytes = 0;
+let loadedBytes = 0;
+let blobUrls = [];
+
+function showError(error) {
+    console.error(error);
+    errorBox.style.display = "block";
+    errorBox.textContent =
+        "Unable to load Baldi's Basics Plus.\n\n" +
+        (error.message || error);
+}
+
+function formatSize(bytes) {
+    if (bytes >= 1024 ** 3)
+        return (bytes / 1024 ** 3).toFixed(2) + " GB";
+
+    if (bytes >= 1024 ** 2)
+        return (bytes / 1024 ** 2).toFixed(2) + " MB";
+
+    if (bytes >= 1024)
+        return (bytes / 1024).toFixed(2) + " KB";
+
+    return bytes + " B";
+}
+
+function updateProgress() {
+    const loaded = formatSize(loadedBytes);
+    const total = totalBytes > 0
+        ? formatSize(totalBytes)
+        : "Unknown size";
+
+    const percent = totalBytes > 0
+        ? Math.min(100, loadedBytes / totalBytes * 100).toFixed(1) + "%"
+        : "Calculating...";
+
+    loadingText.textContent =
+        `LOADING... ${loaded} / ${total} (${percent})`;
+}
+
+function makeUrl(base, path) {
+    return base + path;
+}
+
+// Load a JavaScript file using CDN fallbacks.
+async function loadScript(path) {
+    let lastError;
+
+    for (const base of CDN_BASES) {
+        const url = makeUrl(base, path);
+
+        try {
+            await new Promise((resolve, reject) => {
+                const script = document.createElement("script");
+
+                script.src = url;
+                script.onload = resolve;
+                script.onerror = () => {
+                    script.remove();
+                    reject(new Error("Script failed: " + url));
+                };
+
+                document.head.appendChild(script);
+            });
+
+            console.log("Loaded script:", url);
+            return base;
+
+        } catch (error) {
+            console.warn(error);
+            lastError = error;
         }
+    }
 
-        const loadingText = document.querySelector("#loading-text");
-        let totalBytes = 0;
-        let loadedBytes = 0;
+    throw lastError || new Error("All script CDNs failed: " + path);
+}
 
-        // Format file size for display
-        function formatSize(bytes) {
-            if (bytes > 1024 * 1024 * 1024) return (bytes / (1024 * 1024 * 1024)).toFixed(2) + " GB";
-            if (bytes > 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(2) + " MB";
-            if (bytes > 1024) return (bytes / 1024).toFixed(2) + " KB";
-            return bytes + " B";
-        }
+// Check whether a resource is available on a CDN.
+async function findWorkingUrl(path) {
+    let lastError;
 
-        // Get size of file via HEAD
-        async function getSize(url) {
-            try {
-                const res = await fetch(url, { method: "HEAD" });
-                return parseInt(res.headers.get("Content-Length") || "0", 10);
-            } catch {
-                return 0;
+    for (const base of CDN_BASES) {
+        const url = makeUrl(base, path);
+
+        try {
+            const response = await fetch(url, {
+                method: "HEAD",
+                cache: "no-store"
+            });
+
+            if (!response.ok) {
+                throw new Error("HTTP " + response.status);
             }
-        }
 
-        // Fetch file and update loading progress
-        async function fetchWithProgress(url) {
-            const response = await fetch(url);
+            console.log("Using resource:", url);
+            return url;
+
+        } catch (error) {
+            console.warn("Resource fallback:", url, error);
+            lastError = error;
+        }
+    }
+
+    throw lastError || new Error("Resource unavailable: " + path);
+}
+
+// Download one split file, trying each CDN.
+async function fetchPart(path) {
+    let lastError;
+
+    for (const base of CDN_BASES) {
+        const url = makeUrl(base, path);
+
+        try {
+            const response = await fetch(url, {
+                cache: "no-store"
+            });
+
+            if (!response.ok) {
+                throw new Error("HTTP " + response.status);
+            }
+
+            const headerSize = Number(
+                response.headers.get("Content-Length")
+            ) || 0;
+
+            if (headerSize > 0) {
+                totalBytes += headerSize;
+                updateProgress();
+            }
+
+            if (!response.body) {
+                const buffer = await response.arrayBuffer();
+                loadedBytes += buffer.byteLength;
+
+                if (!headerSize) {
+                    totalBytes += buffer.byteLength;
+                }
+
+                updateProgress();
+                return buffer;
+            }
+
             const reader = response.body.getReader();
             const chunks = [];
-            let received = 0;
+            let fileSize = 0;
 
             while (true) {
                 const { done, value } = await reader.read();
+
                 if (done) break;
-                received += value.length;
-                loadedBytes += value.length;
+
                 chunks.push(value);
-                const doneText = formatSize(loadedBytes);
-                const totalText = formatSize(totalBytes);
-                const percent = totalBytes > 0 ? ((loadedBytes / totalBytes) * 100).toFixed(1) : "?";
-                loadingText.textContent = `LOADING... ${doneText} / ${totalText} (${percent}%)`;
+                fileSize += value.length;
+                loadedBytes += value.length;
+
+                if (!headerSize) {
+                    totalBytes += value.length;
+                }
+
+                updateProgress();
             }
 
-            const fullBuffer = new Uint8Array(received);
+            const result = new Uint8Array(fileSize);
             let offset = 0;
+
             for (const chunk of chunks) {
-                fullBuffer.set(chunk, offset);
+                result.set(chunk, offset);
                 offset += chunk.length;
             }
-            return fullBuffer.buffer;
+
+            console.log("Downloaded:", path, "from", base);
+            return result.buffer;
+
+        } catch (error) {
+            console.warn("Part fallback:", url, error);
+            lastError = error;
+        }
+    }
+
+    throw lastError || new Error("All CDNs failed for " + path);
+}
+
+// Generate split-file names.
+function getParts(file, count) {
+    const parts = [];
+
+    for (let i = 1; i <= count; i++) {
+        parts.push(file + ".part" + i);
+    }
+
+    return parts;
+}
+
+// Download and combine split files.
+async function mergeFiles(parts) {
+    const buffers = await Promise.all(
+        parts.map(fetchPart)
+    );
+
+    const blob = new Blob(buffers);
+    const blobUrl = URL.createObjectURL(blob);
+
+    blobUrls.push(blobUrl);
+
+    return blobUrl;
+}
+
+// Main loading process.
+async function startGame() {
+    try {
+        loadingText.textContent = "LOADING UNITY...";
+
+        // Load Unity loader.
+        await loadScript("Build/Export.loader.js");
+
+        if (typeof createUnityInstance !== "function") {
+            throw new Error("Unity loader did not initialize.");
         }
 
-        // Combine multiple .part files into a single Blob
-        async function mergeFiles(parts) {
-            const buffers = await Promise.all(parts.map(fetchWithProgress));
-            return URL.createObjectURL(new Blob(buffers));
-        }
+        loadingText.textContent = "CHECKING GAME FILES...";
 
-        // Generate list of part file names
-        function getParts(file, count) {
-            const parts = [];
-            for (let i = 1; i <= count; i++) {
-                parts.push(file + ".part" + i);
-            }
-            return parts;
-        }
+        // Split-file definitions.
+        const dataParts = getParts("Build/Export.data", 2);
+        const wasmParts = getParts("Build/Export.wasm", 3);
 
-        // Main loader logic
-        (async () => {
-            const dataParts = getParts("Build/Export.data", 2);
-            const wasmParts = getParts("Build/Export.wasm", 3);
-            const allParts = [...dataParts, ...wasmParts];
+        // Download the framework and game parts.
+        const frameworkPromise = findWorkingUrl(
+            "Build/Export.framework.js"
+        );
 
-            const sizes = await Promise.all(allParts.map(getSize));
-            totalBytes = sizes.reduce((a, b) => a + b, 0);
+        const dataPromise = mergeFiles(dataParts);
+        const wasmPromise = mergeFiles(wasmParts);
 
-            const [dataUrl, wasmUrl] = await Promise.all([
-                mergeFiles(dataParts),
-                mergeFiles(wasmParts)
+        const [frameworkUrl, dataUrl, codeUrl] =
+            await Promise.all([
+                frameworkPromise,
+                dataPromise,
+                wasmPromise
             ]);
 
-            createUnityInstance(document.querySelector("#unity-canvas"), {
-                dataUrl: dataUrl,
-                frameworkUrl: "Build/Export.framework.js",
-                codeUrl: wasmUrl,
-                streamingAssetsUrl: new URL("Build/StreamingAssets/", document.baseURI).toString(),
-                companyName: "Basically Games",
-                productName: "Baldi's Basics Plus",
-                productVersion: "0.3.2",
-            }).then(() => {
-                loadingText.remove();
-            });
-        })();
-    </script>
+        loadingText.textContent = "STARTING GAME...";
+
+        const canvas = document.getElementById("unity-canvas");
+
+        await createUnityInstance(canvas, {
+            dataUrl: dataUrl,
+            frameworkUrl: frameworkUrl,
+            codeUrl: codeUrl,
+
+            streamingAssetsUrl:
+                CDN_BASES[0] + "Build/StreamingAssets/",
+
+            companyName: "Basically Games",
+            productName: "Baldi's Basics Plus",
+            productVersion: "0.3.2"
+
+        }, function(progress) {
+            const percent = (progress * 100).toFixed(0);
+
+            loadingText.textContent =
+                "INITIALIZING UNITY... " + percent + "%";
+
+        });
+
+        loadingText.remove();
+
+        console.log("Baldi's Basics Plus loaded successfully.");
+
+    } catch (error) {
+        showError(error);
+    }
+}
+
+// Release generated memory when leaving the page.
+window.addEventListener("pagehide", () => {
+    for (const url of blobUrls) {
+        URL.revokeObjectURL(url);
+    }
+});
+
+startGame();
+</script>
+
 </body>
 </html>

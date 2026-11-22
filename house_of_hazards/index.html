@@ -1,1 +1,210 @@
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/arcade-v/unity/house_of_hazards/TemplateData/style.css"> <script src="https://cdn.jsdelivr.net/gh/arcade-v/unity/house_of_hazards/TemplateData/UnityProgress.js"></script> <script src="https://cdn.jsdelivr.net/gh/arcade-v/unity/house_of_hazards/UnityLoader.js"></script> <script> var gameInstance = UnityLoader.instantiate("gameContainer", "https://cdn.jsdelivr.net/gh/arcade-v/unity/house_of_hazards/build.json", {onProgress: UnityProgress,Module:{onRuntimeInitialized: function() {UnityProgress(gameInstance, "complete")}}}); </script> <div class="webgl-content"> <div id="gameContainer" style="width: 100vw; height: 100vh"></div> </div> 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>House of Hazards</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: transparent;
+        }
+
+        .webgl-content {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: min(100vw, 177.7778vh);
+            height: min(100vh, 56.25vw);
+            aspect-ratio: 16 / 9;
+            overflow: hidden;
+            background: transparent;
+        }
+
+        #gameContainer canvas {
+            display: block;
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        #loading-error {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            padding: 12px;
+            background: #8b0000;
+            color: white;
+            font: 13px monospace;
+            overflow-wrap: anywhere;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="webgl-content">
+    <div id="gameContainer"></div>
+</div>
+
+<div id="loading-error"></div>
+
+<script>
+const CDN_BASES = [
+      "https://cdn.jsdelivr.net/gh/arcade-v/unity@main/house_of_hazards/",
+      "https://fastly.jsdelivr.net/gh/arcade-v/unity@main/house_of_hazards/",
+      "https://testingcf.jsdelivr.net/gh/arcade-v/unity@main/house_of_hazards/",
+      "https://gcore.jsdelivr.net/gh/arcade-v/unity@main/house_of_hazards/",
+      "https://raw.githack.com/arcade-v/unity/main/house_of_hazards/",
+      "https://raw.githubusercontent.com/arcade-v/unity/main/house_of_hazards/",
+      "https://cdn.statically.io/gh/arcade-v/unity@main/house_of_hazards/"
+];
+
+let gameInstance = null;
+
+function showError(error) {
+    console.error("House of Hazards loading error:", error);
+
+    const box = document.getElementById("loading-error");
+    box.style.display = "block";
+    box.textContent =
+        "Unable to load House of Hazards:\n" +
+        (error.message || String(error));
+}
+
+function loadScript(url) {
+    return new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+
+        script.src = url;
+
+        script.onload = resolve;
+
+        script.onerror = () => {
+            script.remove();
+            reject(new Error("Failed to load: " + url));
+        };
+
+        document.head.appendChild(script);
+    });
+}
+
+async function loadScriptWithFallback(path, check) {
+    let lastError;
+
+    for (const base of CDN_BASES) {
+        const url = base + path;
+
+        try {
+            await loadScript(url);
+
+            if (check && !check()) {
+                throw new Error("Script loaded but required function is missing.");
+            }
+
+            console.log("Loaded:", url);
+            return url;
+
+        } catch (error) {
+            console.warn("CDN fallback:", url, error);
+            lastError = error;
+        }
+    }
+
+    throw lastError || new Error("All script CDNs failed: " + path);
+}
+
+async function findWorkingConfig(path) {
+    let lastError;
+
+    for (const base of CDN_BASES) {
+        const url = base + path;
+
+        try {
+            const response = await fetch(url, {
+                cache: "no-store"
+            });
+
+            if (!response.ok) {
+                throw new Error("HTTP " + response.status);
+            }
+
+            console.log("Using config:", url);
+            return url;
+
+        } catch (error) {
+            console.warn("Config fallback:", url, error);
+            lastError = error;
+        }
+    }
+
+    throw lastError || new Error("Could not find " + path);
+}
+
+async function initializeGame() {
+    try {
+        // Load progress handler.
+        await loadScriptWithFallback(
+            "TemplateData/UnityProgress.js",
+            () => typeof UnityProgress === "function"
+        );
+
+        // Load UnityLoader.
+        await loadScriptWithFallback(
+            "UnityLoader.js",
+            () => typeof UnityLoader !== "undefined"
+        );
+
+        // Find game configuration.
+        const configUrl = await findWorkingConfig("build.json");
+
+        // Initialize game.
+        gameInstance = UnityLoader.instantiate(
+            "gameContainer",
+            configUrl,
+            {
+                onProgress: function(instance, progress) {
+                    UnityProgress(instance, progress);
+                },
+
+                Module: {
+                    onRuntimeInitialized: function() {
+                        UnityProgress(gameInstance, "complete");
+                    }
+                }
+            }
+        );
+
+        window.gameInstance = gameInstance;
+
+        console.log("House of Hazards initialized.");
+
+    } catch (error) {
+        showError(error);
+    }
+}
+
+initializeGame();
+</script>
+
+</body>
+</html>

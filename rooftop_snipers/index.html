@@ -1,17 +1,198 @@
-<html><head>
-    <title></title>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <script id="gamedistribution-jssdk" src=""></script><script </script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Rooftop Snipers</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
 
-    </script>
-<body marginwidth="0" marginheight="0" style="width: 764px; height: 495px;">
-<script type="text/javascript">
-</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/arcade-v/unity/tunnel_rush/style.css">
-<script src="https://cdn.jsdelivr.net/gh/arcade-v/unity/tunnel_rush/UnityProgress.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/arcade-v/unity/rooftop_snipers/TemplateData/UnityLoader.js"></script>
-    <script>
-      var gameInstance = UnityLoader.instantiate("gameContainer", "https://cdn.jsdelivr.net/gh/arcade-v/unity/rooftop_snipers/Build/rooftop-snipers.json", {onProgress: UnityProgress,Module:{onRuntimeInitialized: function() {UnityProgress(gameInstance, "complete")}}});
-    </script>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: transparent;
+        }
+
+        .webgl-content {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: min(100vw, 177.7778vh);
+            height: min(100vh, 56.25vw);
+            aspect-ratio: 16 / 9;
+            overflow: hidden;
+            background: transparent;
+        }
+
+        #gameContainer canvas {
+            position: absolute;
+            inset: 0;
+            width: 100% !important;
+            height: 100% !important;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
     <div class="webgl-content">
-        <div id="gameContainer" style="width: 100vw; height: 100vh; padding: 0px; margin: 0px; border: 0px; position: relative; background: rgb(128, 128, 128);"><canvas id="#canvas" style="cursor: default;" width="764" height="495"></canvas><div class="logo Dark" style="display: none;"></div><div class="progress Dark" style="display: none;"><div class="empty" style="width: 0%;"></div><div class="full" style="width: 100%;"></div></div><div class="text" style="display: none;"></div></div>
- </div></body></html>
+        <div id="gameContainer"></div>
+    </div>
+
+    <script>
+        const CDN_BASES = [
+      "https://cdn.jsdelivr.net/gh/arcade-v/unity@main/rooftop_snipers/",
+      "https://fastly.jsdelivr.net/gh/arcade-v/unity@main/rooftop_snipers/",
+      "https://testingcf.jsdelivr.net/gh/arcade-v/unity@main/rooftop_snipers/",
+      "https://gcore.jsdelivr.net/gh/arcade-v/unity@main/rooftop_snipers/",
+      "https://raw.githack.com/arcade-v/unity/main/rooftop_snipers/",
+      "https://raw.githubusercontent.com/arcade-v/unity/main/rooftop_snipers/",
+      "https://cdn.statically.io/gh/arcade-v/unity@main/rooftop_snipers/"
+        ];
+
+        let gameInstance = null;
+
+        function loadScript(url) {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement("script");
+
+                script.src = url;
+                script.onload = resolve;
+                script.onerror = () => {
+                    script.remove();
+                    reject(new Error("Failed to load: " + url));
+                };
+
+                document.head.appendChild(script);
+            });
+        }
+
+        async function loadWithFallback(path) {
+            let lastError;
+
+            for (const base of CDN_BASES) {
+                const url = base + path;
+
+                try {
+                    const response = await fetch(url, {
+                        cache: "no-store"
+                    });
+
+                    if (!response.ok) {
+                        throw new Error("HTTP " + response.status);
+                    }
+
+                    console.log("Found:", url);
+                    return url;
+
+                } catch (error) {
+                    console.warn("CDN failed:", url, error);
+                    lastError = error;
+                }
+            }
+
+            throw lastError || new Error("All CDN fallbacks failed.");
+        }
+
+        async function loadUnity() {
+            try {
+                // Load Unity progress handler.
+                let progressLoaded = false;
+
+                for (const base of CDN_BASES) {
+                    try {
+                        await loadScript(base + "TemplateData/UnityProgress.js");
+                        progressLoaded = true;
+                        break;
+                    } catch (error) {
+                        console.warn(error);
+                    }
+                }
+
+                if (!progressLoaded) {
+                    throw new Error("Could not load UnityProgress.js");
+                }
+
+                // Load UnityLoader.
+                let loaderLoaded = false;
+
+                for (const base of CDN_BASES) {
+                    try {
+                        await loadScript(base + "TemplateData/UnityLoader.js");
+
+                        if (typeof UnityLoader !== "undefined") {
+                            loaderLoaded = true;
+                            break;
+                        }
+                    } catch (error) {
+                        console.warn(error);
+                    }
+                }
+
+                if (!loaderLoaded) {
+                    throw new Error("Could not load UnityLoader.js");
+                }
+
+                // Resolve the game configuration JSON.
+                const configUrl = await loadWithFallback(
+                    "Build/rooftop-snipers.json"
+                );
+
+                // Start Unity.
+                gameInstance = UnityLoader.instantiate(
+                    "gameContainer",
+                    configUrl,
+                    {
+                        onProgress: function(instance, progress) {
+                            if (typeof UnityProgress === "function") {
+                                UnityProgress(instance, progress);
+                            }
+                        }
+                    }
+                );
+
+                window.gameInstance = gameInstance;
+
+                console.log("Rooftop Snipers initialized.");
+
+            } catch (error) {
+                console.error("Unity loading error:", error);
+
+                const message = document.createElement("div");
+                message.style.cssText = `
+                    position:fixed;
+                    z-index:1000;
+                    left:10px;
+                    right:10px;
+                    bottom:10px;
+                    padding:12px;
+                    color:white;
+                    background:#8b0000;
+                    font:13px monospace;
+                    overflow-wrap:anywhere;
+                `;
+                message.textContent =
+                    "Unable to load Rooftop Snipers: " + error.message;
+
+                document.body.appendChild(message);
+            }
+        }
+
+        loadUnity();
+    </script>
+</body>
+</html>

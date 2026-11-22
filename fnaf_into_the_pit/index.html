@@ -1,118 +1,121 @@
 <!DOCTYPE html>
 <html lang="en-us">
-  <head>
+<head>
   <link
-  href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&display=swap"
-  rel="stylesheet"
->
-    <base href="https://cdn.jsdelivr.net/gh/arcade-v/unity@68625bc/fnaf_into_the_pit/">
-    <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <style>
-      
-html, body {
-  padding: 0;
-  margin: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-}
+    href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&display=swap"
+    rel="stylesheet"
+  >
+  <base href="https://cdn.jsdelivr.net/gh/arcade-v/unity@main/fnaf_into_the_pit/">
 
-#unity-container,
-#unity-container.unity-desktop,
-#unity-container.unity-mobile {
-  position: fixed;
-  left: 0;
-  top: 0;
-  width: 100vw;
-  height: 100vh;
-  transform: none;
-  overflow: hidden;
-}
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Five Nights at Freddy's: Into the Pit</title>
 
-#unity-canvas,
-.unity-mobile #unity-canvas {
-  display: block;
-  width: 100% !important;
-  height: 100% !important;
-  background: #231F20;
-}
+  <style>
+    html, body {
+      padding: 0;
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: transparent;
+    }
 
-#unity-loading-bar {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  display: none;
-}
+    #unity-container,
+    #unity-container.unity-desktop,
+    #unity-container.unity-mobile {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      transform: none;
+      overflow: hidden;
+    }
 
-#unity-logo {
-  width: 154px;
-  height: 130px;
-  background: url('unity-logo-dark.png') no-repeat center;
-}
+    #unity-canvas,
+    .unity-mobile #unity-canvas {
+      display: block;
+      width: 100% !important;
+      height: 100% !important;
+      background: #231F20;
+    }
 
-#unity-progress-bar-empty {
-  width: 141px;
-  height: 18px;
-  margin-top: 10px;
-  margin-left: 6.5px;
-  background: url('progress-bar-empty-dark.png') no-repeat center;
-}
+    #unity-loading-bar {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      display: none;
+    }
 
-#unity-progress-bar-full {
-  width: 0%;
-  height: 18px;
-  margin-top: 10px;
-  background: url('progress-bar-full-dark.png') no-repeat center;
-}
+    #unity-logo {
+      width: 154px;
+      height: 130px;
+      background: url('unity-logo-dark.png') no-repeat center;
+    }
 
-#unity-footer {
-  position: relative;
-}
+    #unity-progress-bar-empty {
+      width: 141px;
+      height: 18px;
+      margin-top: 10px;
+      margin-left: 6.5px;
+      background: url('progress-bar-empty-dark.png') no-repeat center;
+    }
 
-.unity-mobile #unity-footer {
-  display: none;
-}
+    #unity-progress-bar-full {
+      width: 0%;
+      height: 18px;
+      margin-top: 10px;
+      background: url('progress-bar-full-dark.png') no-repeat center;
+    }
 
-#unity-webgl-logo {
-  float: left;
-  width: 204px;
-  height: 38px;
-  background: url('webgl-logo.png') no-repeat center;
-}
+    #unity-footer {
+      position: relative;
+    }
 
-#unity-build-title {
-  float: right;
-  margin-right: 10px;
-  line-height: 38px;
-  font-family: arial;
-  font-size: 18px;
-}
+    .unity-mobile #unity-footer {
+      display: none;
+    }
 
-#unity-fullscreen-button {
-  float: right;
-  width: 38px;
-  height: 38px;
-  background: url('fullscreen-button.png') no-repeat center;
-}
+    #unity-webgl-logo {
+      float: left;
+      width: 204px;
+      height: 38px;
+      background: url('webgl-logo.png') no-repeat center;
+    }
 
-#unity-warning {
-  position: absolute;
-  left: 50%;
-  top: 5%;
-  transform: translateX(-50%);
-  background: white;
-  padding: 10px;
-  display: none;
-}
+    #unity-build-title {
+      float: right;
+      margin-right: 10px;
+      line-height: 38px;
+      font-family: Arial, sans-serif;
+      font-size: 18px;
+    }
+
+    #unity-fullscreen-button {
+      float: right;
+      width: 38px;
+      height: 38px;
+      background: url('fullscreen-button.png') no-repeat center;
+    }
+
+    #unity-warning {
+      position: absolute;
+      left: 50%;
+      top: 5%;
+      transform: translateX(-50%);
+      background: white;
+      padding: 10px;
+      display: none;
+    }
 
     #loading-text {
       position: fixed;
       top: 20px;
       left: 0;
       width: 100%;
-      z-index: 9999;   
+      z-index: 9999;
       font-family: 'Pixelify Sans', monospace !important;
       font-weight: 700;
       font-size: 48px;
@@ -120,151 +123,667 @@ html, body {
       text-align: center;
       pointer-events: none;
     }
-    #unity-canvas {
+
+    #load-error {
+      position: fixed;
+      z-index: 10001;
+      bottom: 0;
+      left: 0;
       width: 100%;
-      height: 100%;
-      background: transparent;
-      display: block;
+      max-height: 35vh;
+      overflow: auto;
+      box-sizing: border-box;
+      padding: 12px;
+      background: #300;
+      color: white;
+      font: 12px monospace;
+      white-space: pre-wrap;
+      display: none;
     }
-    </style>
-  </head>
-  <body>
-    <div id="loading-text"
-    style="color: white; font-size: 48px; font-family: cursive; text-align: center; margin-top: 20px;"> LOADING...
-  </div>
-    <div id="unity-container">
-      <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
-      <div id="unity-loading-bar">
-        <div id="unity-logo"></div>
-        <div id="unity-progress-bar-empty">
-          <div id="unity-progress-bar-full"></div>
-        </div>
+  </style>
+</head>
+
+<body>
+
+  <div id="loading-text">LOADING...</div>
+
+  <div id="unity-container">
+    <canvas
+      id="unity-canvas"
+      width="960"
+      height="600"
+      tabindex="-1"
+    ></canvas>
+
+    <div id="unity-loading-bar">
+      <div id="unity-logo"></div>
+
+      <div id="unity-progress-bar-empty">
+        <div id="unity-progress-bar-full"></div>
       </div>
-      <div id="unity-warning"> </div>
     </div>
-    <script>
 
-var loadingText = document.querySelector("#loading-text");
-    let totalBytes = 0;
+    <div id="unity-warning"></div>
+  </div>
+
+  <pre id="load-error"></pre>
+
+  <script>
+    const CDN_BASES = [
+      "https://cdn.jsdelivr.net/gh/arcade-v/unity@main/fnaf_into_the_pit/",
+      "https://fastly.jsdelivr.net/gh/arcade-v/unity@main/fnaf_into_the_pit/",
+      "https://testingcf.jsdelivr.net/gh/arcade-v/unity@main/fnaf_into_the_pit/",
+      "https://gcore.jsdelivr.net/gh/arcade-v/unity@main/fnaf_into_the_pit/",
+      "https://raw.githack.com/arcade-v/unity/main/fnaf_into_the_pit/",
+      "https://raw.githubusercontent.com/arcade-v/unity/main/fnaf_into_the_pit/",
+      "https://cdn.statically.io/gh/arcade-v/unity@main/fnaf_into_the_pit/"
+    ];
+
+    const BUILD_PATH = "Build/";
+
+    const LOADER_FILE = "INTOTHEPIT.loader.js";
+    const FRAMEWORK_FILE = "INTOTHEPIT.framework.js";
+
+    const CACHE_NAME = "intothepit-cache-v2";
+
+    const MAX_RETRIES = 2;
+    const RETRY_DELAY_MS = 1000;
+
+    const TOTAL_GUESS = 645.25 * 1024 * 1024;
+
+    const partProgress = new Map();
+    const blobUrls = [];
+
     let loadedBytes = 0;
+    let unityInstance = null;
+    let prebundleUrl = null;
 
-    async function fetchWithProgress(url) {
-      const response = await fetch(url);
-      const reader = response.body.getReader();
-      let chunks = [];
-      let received = 0;
-      while (true) {
-        const {
-          done,
-          value
-        } = await reader.read();
-        if (done) break;
-        received += value.length;
-        loadedBytes += value.length;
-        chunks.push(value);
-        let mbDone = (loadedBytes / (1024 * 1024)).toFixed(2);
-        let mbTotal = '645.25';
-        loadingText.textContent = `LOADING... ${mbDone} MB / ${mbTotal} MB`;
-      }
-      let fullBuffer = new Uint8Array(received);
-      let offset = 0;
-      for (let chunk of chunks) {
-        fullBuffer.set(chunk, offset);
-        offset += chunk.length;
-      }
-      return fullBuffer.buffer;
+    const loadingText = document.getElementById("loading-text");
+
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    async function mergeFiles(fileParts, cacheKey) {
-      const cache = await caches.open("intothepit-cache");
-      const cachedResponse = await cache.match(cacheKey);
-      if (cachedResponse) {
-        const blob = await cachedResponse.blob();
-        return URL.createObjectURL(blob);
+    function getUrls(path) {
+      return CDN_BASES.map(base => base + path);
+    }
+
+    function setLoading(message) {
+      loadingText.textContent = message;
+    }
+
+    function setStatus(message) {
+      const error = document.getElementById("load-error");
+
+      error.style.display = "block";
+      error.textContent = message;
+    }
+
+    function createBlobUrl(blob) {
+      const url = URL.createObjectURL(blob);
+      blobUrls.push(url);
+      return url;
+    }
+
+    function updateProgress() {
+      loadedBytes = 0;
+
+      for (const bytes of partProgress.values()) {
+        loadedBytes += bytes;
       }
-      const buffers = await Promise.all(
-        fileParts.map(part => fetchWithProgress(part))
+
+      const mbDone = (loadedBytes / 1024 / 1024).toFixed(2);
+      const mbTotal = (TOTAL_GUESS / 1024 / 1024).toFixed(2);
+
+      setLoading(
+        `LOADING... ${mbDone} MB / ${mbTotal} MB`
       );
-      const mergedBlob = new Blob(buffers);
-      const response = new Response(mergedBlob);
-      await cache.put(cacheKey, response);
-      return URL.createObjectURL(mergedBlob);
+    }
+
+    async function fetchWithFallback(path) {
+      const urls = getUrls(path);
+      const errors = [];
+
+      for (const url of urls) {
+        for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+          try {
+            console.log(
+              "[CDN] Attempt",
+              attempt + 1,
+              url
+            );
+
+            const response = await fetch(url, {
+              cache: "no-store"
+            });
+
+            if (!response.ok) {
+              throw new Error("HTTP " + response.status);
+            }
+
+            console.log("[CDN] Success:", url);
+
+            return response;
+
+          } catch (error) {
+            console.warn(
+              "[CDN] Failed:",
+              url,
+              error
+            );
+
+            errors.push(url + ": " + error.message);
+
+            if (attempt < MAX_RETRIES) {
+              await sleep(RETRY_DELAY_MS * (attempt + 1));
+            }
+          }
+        }
+      }
+
+      throw new Error(
+        "All CDN sources failed:\n" +
+        path + "\n\n" +
+        errors.join("\n")
+      );
+    }
+
+    async function loadScript(path) {
+      const urls = getUrls(path);
+      const errors = [];
+
+      for (const url of urls) {
+        try {
+          setLoading("LOADING SCRIPT...");
+
+          console.log("[Script] Trying:", url);
+
+          await new Promise((resolve, reject) => {
+            const script = document.createElement("script");
+
+            script.src = url;
+            script.onload = resolve;
+            script.onerror = () => {
+              script.remove();
+              reject(new Error("Script failed: " + url));
+            };
+
+            document.head.appendChild(script);
+          });
+
+          console.log("[Script] Loaded:", url);
+
+          return url;
+
+        } catch (error) {
+          console.warn("[Script] Failed:", error);
+          errors.push(error.message);
+        }
+      }
+
+      throw new Error(
+        "Unable to load script:\n" +
+        path + "\n" +
+        errors.join("\n")
+      );
+    }
+
+    async function fetchPartWithProgress(path) {
+      const urls = getUrls(path);
+      const errors = [];
+
+      for (const url of urls) {
+        for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+          try {
+            console.log(
+              "[Download] Attempt:",
+              attempt + 1,
+              url
+            );
+
+            const response = await fetch(url, {
+              cache: "no-store"
+            });
+
+            if (!response.ok) {
+              throw new Error("HTTP " + response.status);
+            }
+
+            let received = 0;
+            const chunks = [];
+
+            if (response.body) {
+              const reader = response.body.getReader();
+
+              while (true) {
+                const { done, value } = await reader.read();
+
+                if (done) break;
+
+                chunks.push(value);
+                received += value.byteLength;
+
+                partProgress.set(path, received);
+                updateProgress();
+              }
+            } else {
+              const buffer = await response.arrayBuffer();
+
+              chunks.push(new Uint8Array(buffer));
+              received = buffer.byteLength;
+
+              partProgress.set(path, received);
+              updateProgress();
+            }
+
+            if (received === 0) {
+              throw new Error("Empty file");
+            }
+
+            // Merge chunks
+            const output = new Uint8Array(received);
+
+            let offset = 0;
+
+            for (const chunk of chunks) {
+              output.set(chunk, offset);
+              offset += chunk.byteLength;
+            }
+
+            console.log(
+              "[Download] Complete:",
+              path,
+              received,
+              "bytes"
+            );
+
+            return output.buffer;
+
+          } catch (error) {
+            partProgress.set(path, 0);
+            updateProgress();
+
+            console.warn(
+              "[Download] Failed:",
+              url,
+              error
+            );
+
+            errors.push(url + ": " + error.message);
+
+            if (attempt < MAX_RETRIES) {
+              await sleep(RETRY_DELAY_MS * (attempt + 1));
+            }
+          }
+        }
+
+        console.warn(
+          "[CDN] Switching to next mirror:",
+          path
+        );
+      }
+
+      throw new Error(
+        "Failed to download " + path + "\n" +
+        errors.join("\n")
+      );
+    }
+    
+    async function getCache() {
+      if (!("caches" in window)) {
+        console.warn("[Cache] Cache API unavailable.");
+        return null;
+      }
+
+      try {
+        return await caches.open(CACHE_NAME);
+      } catch (error) {
+        console.warn("[Cache] Could not open cache:", error);
+        return null;
+      }
+    }
+
+    async function getCachedFile(cache, key) {
+      if (!cache) return null;
+
+      try {
+        const cached = await cache.match(
+          new URL(key, document.baseURI).href
+        );
+
+        if (!cached) return null;
+
+        console.log("[Cache] Hit:", key);
+
+        return await cached.blob();
+
+      } catch (error) {
+        console.warn("[Cache] Read failed:", error);
+        return null;
+      }
+    }
+
+    async function saveCachedFile(cache, key, blob) {
+      if (!cache) return;
+
+      try {
+        await cache.put(
+          new URL(key, document.baseURI).href,
+          new Response(blob)
+        );
+
+        console.log("[Cache] Saved:", key);
+
+      } catch (error) {
+        console.warn("[Cache] Write failed:", error);
+      }
     }
 
     function getParts(file, start, end) {
-      let parts = [];
+      const parts = [];
+
       for (let i = start; i <= end; i++) {
         parts.push(file + ".part" + i);
       }
+
       return parts;
     }
-    (async () => {
-      const [dataUrl, wasmUrl, prebundle] = await Promise.all([
-        mergeFiles(getParts("Build/INTOTHEPIT.data", 1, 26), "INTOTHEPIT.data"),
-        mergeFiles(getParts("Build/INTOTHEPIT.wasm", 1, 5), "INTOTHEPIT.wasm"),
-        mergeFiles(getParts("StreamingAssets/aa/WebGL/webglprefabs_assets_all_5ea291f575ddd5dc7ae765c62c8e6be3.bundle", 1, 3), "webglprefabs_assets_all_5ea291f575ddd5dc7ae765c62c8e6be3.bundle"),
-      ]);
-      var container = document.querySelector("#unity-container");
-      var canvas = document.querySelector("#unity-canvas");
-      var loadingBar = document.querySelector("#unity-loading-bar");
-      var progressBarFull = document.querySelector("#unity-progress-bar-full");
-      var warningBanner = document.querySelector("#unity-warning");
 
-      function unityShowBanner(msg, type) {
+    async function mergeFiles(fileParts, cacheKey) {
+      const cache = await getCache();
 
+      // Check cache
+      const cachedBlob = await getCachedFile(cache, cacheKey);
+
+      if (cachedBlob) {
+        partProgress.set(cacheKey, cachedBlob.size);
+        updateProgress();
+
+        console.log(
+          "[Cache] Using cached asset:",
+          cacheKey
+        );
+
+        return createBlobUrl(cachedBlob);
       }
 
+      console.log(
+        "[Merge] Downloading:",
+        cacheKey,
+        fileParts.length,
+        "parts"
+      );
+
+      setLoading("DOWNLOADING... " + cacheKey);
+
+      // Download all parts concurrently
+      const buffers = await Promise.all(
+        fileParts.map(part => fetchPartWithProgress(part))
+      );
+
+      // Calculate total size
+      let totalSize = 0;
+
+      for (const buffer of buffers) {
+        totalSize += buffer.byteLength;
+      }
+
+      // Merge in original order
+      const output = new Uint8Array(totalSize);
+
+      let offset = 0;
+
+      for (const buffer of buffers) {
+        output.set(new Uint8Array(buffer), offset);
+        offset += buffer.byteLength;
+      }
+
+      const mergedBlob = new Blob([output]);
+
+      // Save merged file
+      await saveCachedFile(cache, cacheKey, mergedBlob);
+
+      console.log(
+        "[Merge] Complete:",
+        cacheKey,
+        totalSize,
+        "bytes"
+      );
+
+      return createBlobUrl(mergedBlob);
+    }
+
+    async function loadFramework() {
+      setLoading("DOWNLOADING UNITY FRAMEWORK...");
+
+      const response = await fetchWithFallback(
+        BUILD_PATH + FRAMEWORK_FILE
+      );
+
+      const frameworkBlob = await response.blob();
+
+      console.log(
+        "[Unity] Framework downloaded:",
+        frameworkBlob.size,
+        "bytes"
+      );
+
+      return createBlobUrl(
+        new Blob(
+          [frameworkBlob],
+          { type: "text/javascript" }
+        )
+      );
+    }
+
+    function installBundleFallback(bundlePath, blobUrl) {
       const originalOpen = XMLHttpRequest.prototype.open;
-      XMLHttpRequest.prototype.open = function (method, url, ...rest) {
-        if (url.includes("webglprefabs_assets_all_5ea291f575ddd5dc7ae765c62c8e6be3.bundle")) {
-          url = prebundle;
-        }
-        return originalOpen.call(this, method, url, ...rest);
-      };
+      const originalFetch = window.fetch.bind(window);
 
-      var config = {
-        dataUrl: dataUrl,
-        frameworkUrl: "Build/INTOTHEPIT.framework.js",
-        codeUrl: wasmUrl,
-        streamingAssetsUrl: "https://cdn.jsdelivr.net/gh/arcade-v/unity@68625bc/fnaf_into_the_pit/StreamingAssets",
-        companyName: "Mega Cat Studios",
-        productName: "Five Nights at Freddy's Into the Pit",
-        productVersion: "Release 1.0.11.7",
-        showBanner: unityShowBanner,
-      };
+      const filename = bundlePath.split("/").pop();
 
-      // By default Unity keeps WebGL canvas render target size matched with
-      // the DOM size of the canvas element (scaled by window.devicePixelRatio)
-      // Set this to false if you want to decouple this synchronization from
-      // happening inside the engine, and you would instead like to size up
-      // the canvas DOM size and WebGL render target sizes yourself.
-      // config.matchWebGLToCanvasSize = false;
-
-      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        // Mobile device style: fill the whole browser client area with the game canvas:
-        var meta = document.createElement('meta');
-        meta.name = 'viewport';
-        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-        document.getElementsByTagName('head')[0].appendChild(meta);
+      function shouldRedirect(url) {
+        return String(url).includes(filename);
       }
 
+      // XMLHttpRequest interception
+      XMLHttpRequest.prototype.open = function(
+        method,
+        url,
+        ...rest
+      ) {
+        if (shouldRedirect(url)) {
+          console.log("[Bundle] Redirecting XHR:", url);
+          url = blobUrl;
+        }
 
-      loadingBar.style.display = "block";
-
-      var script = document.createElement("script");
-      script.src = "Build/INTOTHEPIT.loader.js";
-      script.onload = () => {
-        createUnityInstance(canvas, config, (progress) => {
-          progressBarFull.style.width = 100 * progress + "%";
-        }).then((unityInstance) => {
-          loadingBar.style.display = "none";
-          loadingText.remove();
-        }).catch((message) => {
-          alert(message);
-        });
+        return originalOpen.call(
+          this,
+          method,
+          url,
+          ...rest
+        );
       };
-      document.body.appendChild(script);
-    })();
-    </script>
-  </body>
+
+      // Fetch interception
+      window.fetch = function(input, options) {
+        const url = typeof input === "string"
+          ? input
+          : input.url;
+
+        if (shouldRedirect(url)) {
+          console.log("[Bundle] Redirecting fetch:", url);
+
+          if (input instanceof Request) {
+            return originalFetch(
+              new Request(blobUrl, input)
+            );
+          }
+
+          return originalFetch(blobUrl, options);
+        }
+
+        return originalFetch(input, options);
+      };
+    }
+
+    async function startUnity() {
+      try {
+        // 1. Download and merge assets
+        setLoading("PREPARING GAME ASSETS...");
+
+        const [
+          dataUrl,
+          wasmUrl,
+          prebundle,
+          frameworkUrl
+        ] = await Promise.all([
+          mergeFiles(
+            getParts("Build/INTOTHEPIT.data", 1, 26),
+            "INTOTHEPIT.data"
+          ),
+
+          mergeFiles(
+            getParts("Build/INTOTHEPIT.wasm", 1, 5),
+            "INTOTHEPIT.wasm"
+          ),
+
+          mergeFiles(
+            getParts(
+              "StreamingAssets/aa/WebGL/webglprefabs_assets_all_5ea291f575ddd5dc7ae765c62c8e6be3.bundle",
+              1,
+              3
+            ),
+            "webglprefabs_assets_all_5ea291f575ddd5dc7ae765c62c8e6be3.bundle"
+          ),
+
+          loadFramework()
+        ]);
+
+        prebundleUrl = prebundle;
+
+        // Install prefab bundle interception
+        installBundleFallback(
+          "webglprefabs_assets_all_5ea291f575ddd5dc7ae765c62c8e6be3.bundle",
+          prebundle
+        );
+
+        // Get Unity elements
+        const container = document.getElementById(
+          "unity-container"
+        );
+
+        const canvas = document.getElementById(
+          "unity-canvas"
+        );
+
+        const loadingBar = document.getElementById(
+          "unity-loading-bar"
+        );
+
+        const progressBarFull = document.getElementById(
+          "unity-progress-bar-full"
+        );
+
+        // Unity warning banner
+        function unityShowBanner(message, type) {
+          console.warn("[Unity Banner]", message, type);
+        }
+
+        // Unity configuration
+        const config = {
+          dataUrl: dataUrl,
+          frameworkUrl: frameworkUrl,
+          codeUrl: wasmUrl,
+
+          // Relative URL: resolves through the base element
+          streamingAssetsUrl: "StreamingAssets/",
+
+          companyName: "Mega Cat Studios",
+          productName: "Five Nights at Freddy's Into the Pit",
+          productVersion: "Release 1.0.11.7",
+
+          showBanner: unityShowBanner
+        };
+
+        // 6. Mobile viewport
+        if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+          const meta = document.createElement("meta");
+
+          meta.name = "viewport";
+
+          meta.content =
+            "width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes";
+
+          document.head.appendChild(meta);
+        }
+
+        // 7. Load Unity loader with CDN fallback
+        setLoading("LOADING UNITY ENGINE...");
+
+        await loadScript(
+          BUILD_PATH + LOADER_FILE
+        );
+
+        if (typeof createUnityInstance !== "function") {
+          throw new Error(
+            "Unity loader did not expose createUnityInstance."
+          );
+        }
+
+        // 8. Start Unity
+        loadingBar.style.display = "block";
+
+        setLoading("STARTING GAME...");
+
+        unityInstance = await createUnityInstance(
+          canvas,
+          config,
+
+          function(progress) {
+            progressBarFull.style.width =
+              (100 * progress) + "%";
+
+            setLoading(
+              "STARTING GAME... " +
+              Math.round(progress * 100) + "%"
+            );
+          }
+        );
+
+        // 9. Game initialized
+        console.log(
+          "[Unity] Into the Pit initialized successfully.",
+          unityInstance
+        );
+
+        loadingBar.style.display = "none";
+
+        loadingText.remove();
+
+      } catch (error) {
+        console.error(
+          "[Unity] Initialization failed:",
+          error
+        );
+
+        loadingText.textContent = "LOADING FAILED";
+
+        setStatus(
+          "UNITY INITIALIZATION ERROR\n\n" +
+          (error.stack || error.message)
+        );
+      }
+    }
+
+    window.addEventListener("pagehide", function() {
+      for (const url of blobUrls) {
+        URL.revokeObjectURL(url);
+      }
+    });
+
+    startUnity();
+
+  </script>
+</body>
 </html>

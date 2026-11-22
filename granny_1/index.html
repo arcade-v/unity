@@ -1,231 +1,611 @@
 <!DOCTYPE html>
 <html lang="en-us">
 <head>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&display=swap"
+    rel="stylesheet"
+  >
     <title>Granny Original</title>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="robots" content="noindex, nofollow">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/arcade-v/unity/granny_1/TemplateData/style.css">
-    <script src="https://cdn.jsdelivr.net/gh/arcade-v/unity/granny_1/sdk.js"></script>
-    <!-- GameMonetize SDK Entegrasyonu -->
-    <script type="text/javascript">
-        window.SDK_OPTIONS = {
-            gameId: "jp112o3o4hzgrnc7zaewjkrfk282pul8",
-            onEvent: function (a) {
-                switch (a.name) {
-                    case "SDK_GAME_PAUSE":
-                        console.log("Oyun duraklatıldı, ses kapatılıyor...");
-                        if (typeof myGameInstance !== 'undefined' && myGameInstance) {
-                            myGameInstance.SendMessage('AudioManager', 'MuteAudio');
-                        }
-                        break;
-                    case "SDK_GAME_START":
-                        console.log("Reklam bitti, oyun devam ediyor...");
-                        if (typeof myGameInstance !== 'undefined' && myGameInstance) {
-                            myGameInstance.SendMessage('AudioManager', 'UnmuteAudio');
-                        }
-                        break;
-                    case "SDK_READY":
-                        console.log("SDK hazır.");
-                        break;
-                }
-            }
-        };
-        (function (a, b, c) {
-            var d = a.getElementsByTagName(b)[0];
-            a.getElementById(c) || (a = a.createElement(b), a.id = c, a.src = "https://cdn.jsdelivr.net/gh/testamalame/sef@main/sedk.js", d.parentNode.insertBefore(a, d));
-        })(document, "script", "gamemonetize-sdk");
-    </script>
+
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/arcade-v/unity/granny_1/TemplateData/style.css">
+
     <style>
-        body {
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
             margin: 0;
             padding: 0;
-            overflow: hidden;
-            background: url('https://cdn.jsdelivr.net/gh/arcade-v/unity/granny_1/background.png') no-repeat center center fixed;
-            background-size: cover;
-        }
-        #unity-container {
-            position: absolute;
             width: 100%;
             height: 100%;
-            left: 0;
-            top: 0;
+            overflow: hidden;
+            background: transparent;
         }
+
+        body {
+            background:
+                url("https://cdn.jsdelivr.net/gh/arcade-v/unity/granny_1/background.png")
+                no-repeat center center fixed;
+            background-size: cover;
+        }
+
+        #unity-container {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 16:9 game area, centered without stretching */
+        #game-wrapper {
+            position: relative;
+            width: min(100vw, 177.7778vh);
+            height: min(100vh, 56.25vw);
+            aspect-ratio: 16 / 9;
+            overflow: hidden;
+            background: transparent;
+        }
+
+        #unity-canvas {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+            background: transparent;
+        }
+
         #unity-loading-bar {
             position: absolute;
+            z-index: 5;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 400px;
+            width: min(400px, 80%);
             height: 20px;
             background: rgba(0, 0, 0, 0.5);
-            border: 2px solid #ffffff;
+            border: 2px solid #fff;
             border-radius: 10px;
             display: block;
         }
+
         #unity-logo {
             position: absolute;
-            top: calc(50% - 100px);
+            bottom: 35px;
             left: 50%;
             transform: translateX(-50%);
             width: 200px;
-            height: auto;
+            height: 100px;
+            background: transparent center / contain no-repeat;
         }
+
         #unity-logo img {
             max-width: 100%;
             height: auto;
         }
+
         #unity-progress-bar-empty {
             width: 100%;
             height: 100%;
             position: relative;
         }
+
         #unity-progress-bar-full {
             position: absolute;
             top: 0;
             left: 0;
             width: 0%;
             height: 100%;
-            background: #4caf50;
+            background: #7F00FF;
             border-radius: 8px;
-            transition: width 0.3s ease;
+            transition: width 0.15s linear;
         }
+
         #unity-warning {
             position: absolute;
+            z-index: 20;
             left: 50%;
             top: 5%;
-            transform: translate(-50%);
+            transform: translateX(-50%);
+            width: min(90%, 600px);
             background: white;
+            color: black;
             padding: 10px;
             display: none;
             border: 1px solid #ccc;
             border-radius: 5px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+        }
+
+        #loading-status {
+            position: absolute;
+            z-index: 6;
+            top: calc(50% + 25px);
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-family: 'Pixelify Sans', monospace !important;
+            text-align: center;
+            width: 90%;
+        }
+
+        #error {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            padding: 12px;
+            background: #8b0000;
+            color: white;
+            font: 13px monospace;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
         }
     </style>
+
+    <script>
+        // GameMonetize SDK configuration
+        window.SDK_OPTIONS = {
+            gameId: "jp112o3o4hzgrnc7zaewjkrfk282pul8",
+
+            onEvent: function(event) {
+                switch (event.name) {
+                    case "SDK_GAME_PAUSE":
+                        console.log("Game paused by SDK.");
+
+                        if (window.myGameInstance) {
+                            window.myGameInstance.SendMessage(
+                                "AudioManager",
+                                "MuteAudio"
+                            );
+                        }
+                        break;
+
+                    case "SDK_GAME_START":
+                        console.log("Game resumed by SDK.");
+
+                        if (window.myGameInstance) {
+                            window.myGameInstance.SendMessage(
+                                "AudioManager",
+                                "UnmuteAudio"
+                            );
+                        }
+                        break;
+
+                    case "SDK_READY":
+                        console.log("GameMonetize SDK ready.");
+                        break;
+                }
+            }
+        };
+
+        // Load GameMonetize SDK.
+        (function() {
+            const script = document.createElement("script");
+            script.id = "gamemonetize-sdk";
+            script.src =
+                "https://cdn.jsdelivr.net/gh/testamalame/sef@main/sedk.js";
+            document.head.appendChild(script);
+        })();
+    </script>
 </head>
+
 <body>
-    <div id="unity-container">
-        <canvas id="unity-canvas" style="position: absolute; width: 100%; height: 100%"></canvas>
+
+<div id="unity-container">
+    <div id="game-wrapper">
+        <canvas id="unity-canvas" tabindex="-1"></canvas>
+
         <div id="unity-loading-bar">
-            <div id="unity-logo">
-            </div>
+            <div id="unity-logo"></div>
+
             <div id="unity-progress-bar-empty">
                 <div id="unity-progress-bar-full"></div>
             </div>
         </div>
+
+        <div id="loading-status">Preparing game...</div>
         <div id="unity-warning"></div>
     </div>
-    <script>
-        async function mergeUnityWebFiles(baseUrl, filePrefix, totalParts, extension) {
-            const partUrls = [];
-            for (let i = 1; i <= totalParts; i++) {
-                partUrls.push(`${baseUrl}/${filePrefix}_part${i}.${extension}`);
-            }
+</div>
 
-            const buffers = [];
-            for (let i = 0; i < totalParts; i++) {
-                const response = await fetch(partUrls[i]);
-                if (!response.ok) {
-                    throw new Error(`Failed to load part: ${partUrls[i]}`);
-                }
-                const buffer = await response.arrayBuffer();
-                buffers.push(buffer);
+<div id="error"></div>
 
-                const progress = ((i + 1) / totalParts) * 100;
-                document.querySelector("#unity-progress-bar-full").style.width = `${progress}%`;
-            }
+<script>
+const CDN_BASES = [
+      "https://cdn.jsdelivr.net/gh/arcade-v/unity@main/granny_1/",
+      "https://fastly.jsdelivr.net/gh/arcade-v/unity@main/granny_1/",
+      "https://testingcf.jsdelivr.net/gh/arcade-v/unity@main/granny_1/",
+      "https://gcore.jsdelivr.net/gh/arcade-v/unity@main/granny_1/",
+      "https://raw.githack.com/arcade-v/unity/main/granny_1/",
+      "https://raw.githubusercontent.com/arcade-v/unity/main/granny_1/",
+      "https://cdn.statically.io/gh/arcade-v/unity@main/granny_1/"
+];
 
-            const totalLength = buffers.reduce((acc, buffer) => acc + buffer.byteLength, 0);
-            const combinedBuffer = new Uint8Array(totalLength);
-            let offset = 0;
+const BUILD_PATH = "Build/";
 
-            buffers.forEach((buffer) => {
-                combinedBuffer.set(new Uint8Array(buffer), offset);
-                offset += buffer.byteLength;
+const canvas = document.getElementById("unity-canvas");
+const loadingBar = document.getElementById("unity-loading-bar");
+const progressBar = document.getElementById("unity-progress-bar-full");
+const loadingStatus = document.getElementById("loading-status");
+const warningBanner = document.getElementById("unity-warning");
+const errorBox = document.getElementById("error");
+
+window.myGameInstance = null;
+
+let isAdShown = false;
+let blobUrls = [];
+
+// Update loading text.
+function setStatus(message) {
+    loadingStatus.textContent = message;
+}
+
+// Display fatal errors.
+function showError(error) {
+    console.error("Granny loading error:", error);
+
+    errorBox.style.display = "block";
+    errorBox.textContent =
+        "Unable to load Granny.\n\n" +
+        (error.message || String(error));
+
+    setStatus("Loading failed.");
+}
+
+// Create a URL.
+function makeUrl(base, path) {
+    return base + path;
+}
+
+// Load a resource from whichever CDN works.
+async function fetchWithFallback(path) {
+    let lastError;
+
+    for (const base of CDN_BASES) {
+        const url = makeUrl(base, path);
+
+        try {
+            const response = await fetch(url, {
+                cache: "no-store"
             });
 
-            return combinedBuffer;
+            if (!response.ok) {
+                throw new Error("HTTP " + response.status);
+            }
+
+            console.log("Downloaded:", url);
+            return await response.arrayBuffer();
+
+        } catch (error) {
+            console.warn("CDN failed:", url, error);
+            lastError = error;
         }
+    }
 
-        var container = document.querySelector("#unity-container");
-        var canvas = document.querySelector("#unity-canvas");
-        var loadingBar = document.querySelector("#unity-loading-bar");
-        var progressBarFull = document.querySelector("#unity-progress-bar-full");
-        var warningBanner = document.querySelector("#unity-warning");
+    throw lastError || new Error("All CDNs failed for " + path);
+}
 
-        let myGameInstance = null;
-        let isAdShown = false;
+// Find a working URL without converting it into a Blob.
+// This preserves Unity's relative asset loading.
+async function findWorkingUrl(path) {
+    let lastError;
 
-        function unityShowBanner(msg, type) {
-            function updateBannerVisibility() {
-                warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+    for (const base of CDN_BASES) {
+        const url = makeUrl(base, path);
+
+        try {
+            const response = await fetch(url, {
+                method: "HEAD",
+                cache: "no-store"
+            });
+
+            if (!response.ok) {
+                throw new Error("HTTP " + response.status);
             }
-            var div = document.createElement('div');
-            div.innerHTML = msg;
-            warningBanner.appendChild(div);
-            if (type == 'error') div.style = 'background: red; padding: 10px;';
-            else {
-                if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
-                setTimeout(function() {
-                    warningBanner.removeChild(div);
-                    updateBannerVisibility();
-                }, 5000);
+
+            console.log("Using URL:", url);
+            return url;
+
+        } catch (error) {
+            console.warn("URL fallback:", url, error);
+            lastError = error;
+        }
+    }
+
+    throw lastError || new Error("Could not find " + path);
+}
+
+// Load Unity's JavaScript loader with CDN fallbacks.
+async function loadUnityLoader() {
+    let lastError;
+
+    for (const base of CDN_BASES) {
+        const url = makeUrl(base, BUILD_PATH + "Granny.loader.js");
+
+        try {
+            await new Promise((resolve, reject) => {
+                const script = document.createElement("script");
+
+                script.src = url;
+                script.onload = resolve;
+                script.onerror = () => {
+                    script.remove();
+                    reject(new Error("Loader failed: " + url));
+                };
+
+                document.head.appendChild(script);
+            });
+
+            if (typeof createUnityInstance !== "function") {
+                throw new Error("Unity loader did not initialize.");
             }
+
+            console.log("Unity loader loaded:", url);
+            return base;
+
+        } catch (error) {
+            console.warn(error);
+            lastError = error;
+        }
+    }
+
+    throw lastError || new Error("All Unity loader CDNs failed.");
+}
+
+// Download and merge Granny_part1.data, Granny_part2.data, etc.
+async function mergeUnityWebFiles(filePrefix, totalParts, extension) {
+    const buffers = [];
+    let totalSize = 0;
+
+    for (let i = 1; i <= totalParts; i++) {
+        const filename =
+            BUILD_PATH + filePrefix + "_part" + i + "." + extension;
+
+        setStatus(
+            "Downloading " + extension.toUpperCase() +
+            " part " + i + "/" + totalParts + "..."
+        );
+
+        const buffer = await fetchWithFallback(filename);
+
+        buffers.push(buffer);
+        totalSize += buffer.byteLength;
+
+        const progress = (i / totalParts) * 100;
+        progressBar.style.width = progress + "%";
+
+        console.log(
+            "Part downloaded:",
+            filename,
+            buffer.byteLength,
+            "bytes"
+        );
+    }
+
+    const combinedBuffer = new Uint8Array(totalSize);
+    let offset = 0;
+
+    for (const buffer of buffers) {
+        combinedBuffer.set(new Uint8Array(buffer), offset);
+        offset += buffer.byteLength;
+    }
+
+    return combinedBuffer;
+}
+
+// Unity warning banner.
+function unityShowBanner(message, type) {
+    const div = document.createElement("div");
+    div.textContent = message;
+
+    if (type === "error") {
+        div.style.cssText =
+            "background:red;padding:10px;color:white;";
+    } else if (type === "warning") {
+        div.style.cssText =
+            "background:yellow;padding:10px;color:black;";
+
+        setTimeout(() => {
+            div.remove();
             updateBannerVisibility();
-        }
+        }, 5000);
+    }
 
-        function showAdOnClick() {
-            if (!isAdShown && typeof sdk !== 'undefined' && typeof sdk.showBanner !== 'undefined') {
-                sdk.showBanner();
-                isAdShown = true;
+    warningBanner.appendChild(div);
+    updateBannerVisibility();
+}
+
+function updateBannerVisibility() {
+    warningBanner.style.display =
+        warningBanner.children.length ? "block" : "none";
+}
+
+// GameMonetize ad handling.
+function showAdOnClick() {
+    if (
+        isAdShown ||
+        typeof window.sdk === "undefined" ||
+        typeof window.sdk.showBanner !== "function"
+    ) {
+        return;
+    }
+
+    try {
+        window.sdk.showBanner();
+        isAdShown = true;
+    } catch (error) {
+        console.warn("Ad display failed:", error);
+    }
+}
+// Yandex Games SDK compatibility for non-Yandex hosting.
+window.YaGames = window.YaGames || {
+    init: function() {
+        return Promise.resolve({
+            environment: {
+                app: {
+                    id: "arcade-v"
+                },
+                browser: {
+                    lang: navigator.language || "en"
+                },
+                i18n: {
+                    lang: navigator.language || "en"
+                }
+            },
+
+            deviceInfo: {
+                type: "desktop"
+            },
+
+            features: {
+                LoadingAPI: {
+                    ready: function() {}
+                },
+                GameplayAPI: {
+                    start: function() {},
+                    stop: function() {}
+                }
+            },
+
+            getPlayer: function() {
+                return Promise.resolve(null);
+            },
+
+            getPayments: function() {
+                return Promise.resolve(null);
+            },
+
+            getLeaderboards: function() {
+                return Promise.resolve(null);
+            },
+
+            getFlags: function() {
+                return Promise.resolve({});
+            },
+
+            adv: {
+                showFullscreenAdv: function(options) {
+                    if (options && options.callbacks &&
+                        options.callbacks.onClose) {
+                        options.callbacks.onClose(true);
+                    }
+                },
+                showRewardedVideo: function(options) {
+                    if (options && options.callbacks &&
+                        options.callbacks.onClose) {
+                        options.callbacks.onClose(false);
+                    }
+                }
             }
-        }
+        });
+    }
+};
+// Initialize the game.
+async function initializeGame() {
+    try {
+        setStatus("Loading Unity loader...");
 
-        var buildUrl = "https://cdn.jsdelivr.net/gh/arcade-v/unity/granny_1/Build";
-        var loaderUrl = buildUrl + "/Granny.loader.js";
+        // Load Unity loader.
+        await loadUnityLoader();
 
-        async function initializeGame() {
-            try {
-                const dataBuffer = await mergeUnityWebFiles(buildUrl, "Granny", 2, "data");
-                const wasmBuffer = await mergeUnityWebFiles(buildUrl, "Granny", 2, "wasm");
+        // Load data and WASM parts.
+        setStatus("Downloading game files...");
 
-                const dataBlobUrl = URL.createObjectURL(new Blob([dataBuffer], { type: "application/octet-stream" }));
-                const wasmBlobUrl = URL.createObjectURL(new Blob([wasmBuffer], { type: "application/octet-stream" }));
+        const [dataBuffer, wasmBuffer] = await Promise.all([
+            mergeUnityWebFiles("Granny", 2, "data"),
+            mergeUnityWebFiles("Granny", 2, "wasm")
+        ]);
 
-                var config = {
-                    dataUrl: dataBlobUrl,
-                    frameworkUrl: buildUrl + "/Granny.framework.js",
-                    codeUrl: wasmBlobUrl,
-                    streamingAssetsUrl: "https://cdn.jsdelivr.net/gh/arcade-v/unity/granny_1/StreamingAssets",
-                    companyName: "Anastasia Kazantseva",
-                    productName: "Granny",
-                    productVersion: "1.0",
-                    showBanner: unityShowBanner,
-                };
+        // Create Blob URLs for merged files.
+        const dataBlobUrl = URL.createObjectURL(
+            new Blob([dataBuffer], {
+                type: "application/octet-stream"
+            })
+        );
 
-                var script = document.createElement("script");
-                script.src = loaderUrl;
-                script.onload = () => {
-                    createUnityInstance(canvas, config, (progress) => {
-                        progressBarFull.style.width = 100 * progress + "%";
-                    }).then((unityInstance) => {
-                        myGameInstance = unityInstance;
-                        loadingBar.style.display = "none";
-                        // Oyun yüklendiğinde tıklama olayını ekle
-                        canvas.addEventListener('pointerdown', showAdOnClick);
-                        canvas.addEventListener('touchstart', showAdOnClick);
-                    }).catch((message) => {
-                        alert(message);
-                    });
-                };
+        const wasmBlobUrl = URL.createObjectURL(
+            new Blob([wasmBuffer], {
+                type: "application/octet-stream"
+            })
+        );
 
-                document.body.appendChild(script);
-            } catch (error) {
-                console.error("Game initialization failed:", error);
+        blobUrls.push(dataBlobUrl, wasmBlobUrl);
+
+        // Resolve framework URL with fallback.
+        setStatus("Loading Unity framework...");
+
+        const frameworkUrl = await findWorkingUrl(
+            BUILD_PATH + "Granny.framework.js"
+        );
+
+        const streamingAssetsUrl =
+            CDN_BASES[0] + "StreamingAssets/"
+
+        const config = {
+            dataUrl: dataBlobUrl,
+            frameworkUrl: frameworkUrl,
+            codeUrl: wasmBlobUrl,
+            streamingAssetsUrl: streamingAssetsUrl,
+
+            companyName: "Anastasia Kazantseva",
+            productName: "Granny",
+            productVersion: "1.0",
+
+            showBanner: unityShowBanner
+        };
+
+        setStatus("Starting Granny...");
+        progressBar.style.width = "0%";
+
+        // Start Unity.
+        window.myGameInstance = await createUnityInstance(
+            canvas,
+            config,
+            function(progress) {
+                progressBar.style.width =
+                    (progress * 100) + "%";
+
+                setStatus(
+                    "Initializing game... " +
+                    Math.round(progress * 100) + "%"
+                );
             }
-        }
+        );
 
-        initializeGame();
-    </script>
+        loadingBar.style.display = "none";
+        loadingStatus.style.display = "none";
+
+        console.log("Granny loaded successfully.");
+
+        // Register only one click listener.
+        canvas.addEventListener("pointerdown", showAdOnClick);
+
+    } catch (error) {
+        showError(error);
+    }
+}
+
+// Release generated Blob URLs when leaving the page.
+window.addEventListener("pagehide", function() {
+    for (const url of blobUrls) {
+        URL.revokeObjectURL(url);
+    }
+});
+
+initializeGame();
+</script>
+
 </body>
 </html>

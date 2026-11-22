@@ -1,27 +1,259 @@
-<!DOCTYPE html-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>BitLife - Life Simulator</title>
 
-  
-    <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>BitLife - Life Simulator</title>
-    <style>
-        body{font-family:"Myriad Pro", Myriad ,"Helvetica Neue",Helvetica,Arial,sans-serif}body{margin:0;padding:0;position:absolute;height:100%;width:100%;background-size:cover;font-style:regular;font-family:"Myriad Pro", Myriad ,"Helvetica Neue",Helvetica,Arial,sans-serif}.webgl-content{background:#333}#errorBrowserBlock,#loadingBlock,.webgl-content{padding:0;position:absolute;height:100vh;width:100vw}canvas{position:absolute;height:100%;width:100%}#gameContainer{position:absolute;height:100%;width:100%}#fullScreenButton,#logoname{height:35px;width:35px;position:absolute;bottom:5px;right:5px;background-color:transparent;background-image:url(../img/fullScreen_on.png);background-size:35px 35px;border:none;cursor:pointer}#logoname{background-image:url(../img/logo-big.png);left:15px;bottom:11px;width:141px;height:20px;background-size:141px 20px}.subtitle{color:#fff;font-size:15px;padding-bottom:15px;padding-top:15px;display:block;margin:auto;text-align:center}.logo{display:block;margin:20px auto;width:265px;height:60px}.logo-game{height:150px;width:auto;display:block;margin:auto;margin-top:5px;border-radius:20px;box-shadow:0 20px 20px -10px rgba(0,0,0,.3)}#errorBrowserBlock,#loadingBlock{background:#333;background-size:cover;z-index:1}.cover{position:absolute;z-index:-1;top:0;right:0;bottom:0;left:0;-moz-background-size:cover;-webkit-background-size:cover;background-size:cover;opacity:.5;filter:blur(16px)}#errorContent,#progressBar,#warningBrowserBlock,#warningMobileBlock{height:25vh;width:40vw;margin:auto;text-align:center}#progressBar{height:8vh;color:#fff;font-size:4vh}#errorContent,#warningBrowserBlock,#warningMobileBlock{margin-top:15vh;color:#fff;font-size:2.3vh}.browserIcons{display:inline-flex;margin-top:2vh}.browserIcons a{width:150px}#errorContent{font-size:3vh;margin-top:5vh}.centered{height:100%;max-width:770px;margin-left:auto;margin-right:auto}.webgl-content *{border:0;margin:0;padding:0}.webgl-content{height:100%;width:100%}.progress,.webgl-content .logo{position:absolute;left:50%;top:45%;-webkit-transform:translate(-50%,-50%);transform:translate(-50%,-50%)}.webgl-content .logo{background:url(logo.png) no-repeat center/contain;width:130px;height:130px}.webgl-content .progress{height:18px;width:141px;margin-top:90px}.webgl-content .progress .empty{background:url(https://cdn.jsdelivr.net/gh/bit-73-life/25@main/Build/TemplateData/progressEmpty.Light.png) no-repeat right/cover;float:right;width:100%;height:100%;display:inline-block}.webgl-content .progress .full{background:url(https://cdn.jsdelivr.net/gh/bit-73-life/25@main/Build/TemplateData/progressFull.Light.png) no-repeat left/cover;float:left;width:0%;height:100%;display:inline-block}.webgl-content .logo.Dark{background-image:url(logo.png)}.webgl-content .progress.Dark .empty{background-image:url(TemplateData/progressEmpty.Dark.png)}.webgl-content .progress.Dark .full{background-image:url(TemplateData/progressFull.Dark.png)}.webgl-content .footer{margin-top:5px;height:38px;line-height:38px;font-family:Helvetica,Verdana,Arial,sans-serif;font-size:18px}.fullscreen,.title,.webgl-content .footer .webgl-logo{height:100%;display:inline-block;background:transparent center no-repeat}.webgl-content .footer .webgl-logo{background-image:url(https://cdn.jsdelivr.net/gh/bit-73-life/25@main/Build/TemplateData/webgl-logo.png);width:204px;float:left}.webgl-content .footer .title{margin-right:10px;float:right}.webgl-content .footer .fullscreen{background-image:url(TemplateData/fullscreen.png);width:38px;float:right}
-        body,html{margin:0 auto;padding:0 auto;width:62vh;height:100%;overflow:hidden}#links2{position:absolute;right:0;bottom:0;padding:8px;list-style:none;background-color:#fff;border-top-left-radius:5px}#links2 ul{list-style-type:none;margin:0;padding:0}#links2 ul li{display:inline}#links2 ul li a{color:#000;display:inline-block;margin-right:10px;text-decoration:none}#links2 ul li a.visited{color:#000}#links2 ul li a:hover{opacity:.85}
-    </style>
-    <script id="gamedistribution-jssdk" src="/main.min.js"></script><script src="https://cdn.jsdelivr.net/gh/arcade-v/unity/bitlife/TemplateData/UnityProgress.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/arcade-v/unity/bitlife/Build/UnityLoader.js"></script>
-    <script>
-      var unityInstance = UnityLoader.instantiate("gameContainer", "https://cdn.jsdelivr.net/gh/arcade-v/unity/bitlife/Build/BitLife.json", {onProgress: UnityProgress});
-    </script>
+<style>
+* {
+  box-sizing: border-box;
+}
 
-  
-  
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: transparent;
+}
 
-  <div class="webgl-content">
-      <div id="gameContainer" style="width: 100%; height: 100%; padding: 0px; margin: 0px; border: 0px; background: rgb(35, 31, 32);"><canvas id="#canvas" width="578" height="932" style="width: 100%; height: 100%; cursor: default;"></canvas><div class="logo Dark" style="display: none;"></div><div class="progress Dark" style="display: none;"><div class="empty" style="width: 0%;"></div><div class="full" style="width: 100%;"></div></div></div>
-    </div>
-    <script>
-      function closeBacklinks(){
-        document.querySelector('#listLink').style.display = "none";
+.webgl-content {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+}
+
+#gameContainer {
+  position: relative;
+  width: min(100vw, 62.017vh);
+  height: min(100vh, 161.246vw);
+  aspect-ratio: 578 / 932;
+  flex: none;
+  overflow: hidden;
+  background: transparent;
+}
+
+#gameContainer canvas {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+.webgl-content * {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.webgl-content .logo,
+.webgl-content .progress {
+  position: absolute;
+  left: 50%;
+  top: 45%;
+  transform: translate(-50%, -50%);
+}
+
+.webgl-content .logo {
+  background: url("logo.png") no-repeat center / contain;
+  width: 130px;
+  height: 130px;
+}
+
+.webgl-content .progress {
+  height: 18px;
+  width: 141px;
+  margin-top: 90px;
+}
+
+.webgl-content .progress .empty {
+  background: url("https://cdn.jsdelivr.net/gh/bit-73-life/25@main/Build/TemplateData/progressEmpty.Light.png")
+    no-repeat right / cover;
+  float: right;
+  width: 100%;
+  height: 100%;
+  display: inline-block;
+}
+
+.webgl-content .progress .full {
+  background: url("https://cdn.jsdelivr.net/gh/bit-73-life/25@main/Build/TemplateData/progressFull.Light.png")
+    no-repeat left / cover;
+  float: left;
+  width: 0%;
+  height: 100%;
+  display: inline-block;
+}
+
+.webgl-content .logo.Dark {
+  background-image: url("logo.png");
+}
+
+.webgl-content .progress.Dark .empty {
+  background-image: url("TemplateData/progressEmpty.Dark.png");
+}
+
+.webgl-content .progress.Dark .full {
+  background-image: url("TemplateData/progressFull.Dark.png");
+}
+
+#error {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  padding: 12px;
+  background: #8b0000;
+  color: white;
+  font: 13px monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+</style>
+</head>
+
+<body>
+
+<div class="webgl-content">
+  <div id="gameContainer"></div>
+</div>
+
+<div id="error"></div>
+
+<script>
+const cdnBases = [
+      "https://cdn.jsdelivr.net/gh/arcade-v/unity@main/bitlife/",
+      "https://fastly.jsdelivr.net/gh/arcade-v/unity@main/bitlife/",
+      "https://testingcf.jsdelivr.net/gh/arcade-v/unity@main/bitlife/",
+      "https://gcore.jsdelivr.net/gh/arcade-v/unity@main/bitlife/",
+      "https://raw.githack.com/arcade-v/unity/main/bitlife/",
+      "https://raw.githubusercontent.com/arcade-v/unity/main/bitlife/",
+      "https://cdn.statically.io/gh/arcade-v/unity@main/bitlife/"
+];
+
+const errorBox = document.getElementById("error");
+
+function showError(message) {
+  errorBox.style.display = "block";
+  errorBox.textContent = message;
+}
+
+async function loadScriptWithFallback(path) {
+  let lastError;
+
+  for (const base of cdnBases) {
+    const url = base + path;
+
+    try {
+      await new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+        script.src = url;
+
+        script.onload = resolve;
+
+        script.onerror = () => {
+          script.remove();
+          reject(new Error("Failed to load: " + url));
+        };
+
+        document.head.appendChild(script);
+      });
+
+      console.log("Loaded:", url);
+      return base;
+
+    } catch (error) {
+      console.warn(error);
+      lastError = error;
     }
-    </script>
+  }
+
+  throw lastError || new Error("All CDN sources failed.");
+}
+
+async function loadConfigWithFallback(path) {
+  let lastError;
+
+  for (const base of cdnBases) {
+    const url = base + path;
+
+    try {
+      const response = await fetch(url, {
+        cache: "no-store"
+      });
+
+      if (!response.ok) {
+        throw new Error("HTTP " + response.status);
+      }
+
+      // Validate the JSON, but preserve the original URL.
+      await response.json();
+
+      console.log("Configuration loaded:", url);
+      return url;
+
+    } catch (error) {
+      console.warn("Configuration fallback:", url, error);
+      lastError = error;
+    }
+  }
+
+  throw lastError || new Error("Could not load BitLife.json.");
+}
+
+async function startGame() {
+  try {
+    // Load Unity's progress handler.
+    await loadScriptWithFallback(
+      "TemplateData/UnityProgress.js"
+    );
+
+    // Load the Unity WebGL loader.
+    await loadScriptWithFallback(
+      "Build/UnityLoader.js"
+    );
+
+    if (typeof UnityLoader === "undefined") {
+      throw new Error("UnityLoader is unavailable.");
+    }
+
+    // Find a working configuration URL.
+    const configUrl = await loadConfigWithFallback(
+      "Build/BitLife.json"
+    );
+
+    // Start the game using the original configuration URL.
+    window.unityInstance = UnityLoader.instantiate(
+      "gameContainer",
+      configUrl,
+      {
+        onProgress: function(instance, progress) {
+          if (typeof UnityProgress === "function") {
+            UnityProgress(instance, progress);
+          }
+        }
+      }
+    );
+
+  } catch (error) {
+    console.error("BitLife loading error:", error);
+    showError(
+      "Unable to load BitLife.\n\n" + error.message
+    );
+  }
+}
+
+startGame();
+</script>
+
+</body>
+</html>
